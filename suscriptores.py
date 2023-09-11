@@ -4,7 +4,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, mean_squared_error, mean_absolute_error
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -22,16 +22,12 @@ y = df['subscribers']  # Variable objetivo
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42)
 
-# y_train = y_train.to_numpy().reshape(-1, 1)
-# y_test = y_test.to_numpy().reshape(-1, 1)
+# _________________________Red neuronales___________________________________
 
-# Crear un objeto de regresión Ridge
-modelo_regresion_ridge = Ridge(alpha=1.0)
+print("")
+print(" Modelo Red Neuronal ")
+print("")
 
-# Entrenar el modelo de regresión Ridge en el conjunto de entrenamiento
-modelo_regresion_ridge.fit(X_train, y_train)
-
-# Red neuronales
 
 # Normalizar las características
 scaler = StandardScaler()
@@ -101,7 +97,35 @@ print(f'Error cuadrático medio (MSE): {mse.item()}')
 print(f'Error absoluto medio (MAE): {mae.item()}')
 
 
-# modelo de regresion de logistica
+# _____________________ modelo de regresion de lineal  _______________________
+
+print("")
+print(" Modelo Regresion de Lineal ")
+print("")
+
+
+# Crear un objeto de regresión Ridge
+modelo_regresion_ridge = Ridge(alpha=1.0)
+
+# Entrenar el modelo de regresión Ridge en el conjunto de entrenamiento
+modelo_regresion_ridge.fit(X_train, y_train)
+
+# Hacer predicciones en el conjunto de prueba
+y_pred = modelo_regresion_ridge.predict(X_test)
+
+# Calcular el error cuadrático medio (MSE)
+mse = mean_squared_error(y_test, y_pred)
+print(f'Error cuadrático medio (MSE): {mse}')
+# Calcular el Error Absoluto Medio (MAE)
+mae = mean_absolute_error(y_test, y_pred)
+print(f'Error Absoluto Medio (MAE): {mae}')
+
+# _____________________modelo de regresion de logistica_______________________
+
+print("")
+print(" Modelo Regresion de Logistica ")
+print("")
+
 tamaño_entrada = X_train.shape[1]
 model = NeuralNet(tamaño_entrada)
 
