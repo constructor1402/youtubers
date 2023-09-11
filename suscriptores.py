@@ -9,7 +9,7 @@ import torch.optim as optim
 
 
 df = pd.read_csv(
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYsvkc4bQAxWhXlJLlXTL_N2f61FkaWFXD0MdvxdmMJbCL1IDh7Yc7WhbH8bwFcz2s0Np7pnJDqm-_/pub?output=csv")
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrfTf_O_ci2ym30xdArizt-MoHwNMUiHwdFYqwhH2O2NWOSxO5XBp4KAGrNSxqqJap77uZ_KeFQwAx/pub?output=csv")
 
 # características (variables independientes) y variable objetivo (variable dependiente)
 X = df[['video views', 'uploads', 'country_rank']]  # Características
@@ -20,8 +20,8 @@ y = df['subscribers']  # Variable objetivo
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42)
 
-y_train = y_train.to_numpy().reshape(-1, 1)
-y_test = y_test.to_numpy().reshape(-1, 1)
+# y_train = y_train.to_numpy().reshape(-1, 1)
+# y_test = y_test.to_numpy().reshape(-1, 1)
 
 # Crear un objeto de regresión Ridge
 modelo_regresion_ridge = Ridge(alpha=1.0)
@@ -38,21 +38,22 @@ X_test = scaler.transform(X_test)
 
 # Convertir datos a tensores de PyTorch
 X_train = torch.from_numpy(X_train).to(dtype=torch.float32)
-y_train = torch.from_numpy(y_train).to(dtype=torch.float32)
+y_train = torch.from_numpy(y_train.values).view(-1, 1).to(dtype=torch.float32)
 X_test = torch.from_numpy(X_test).to(dtype=torch.float32)
-y_test = torch.from_numpy(y_test).to(dtype=torch.float32)
+y_test = torch.from_numpy(y_test.values).view(-1, 1).to(dtype=torch.float32)
+
 
 # Definir la arquitectura de la red neuronal
 
 
 class NeuralNet(nn.Module):
-    def __init__(self):
+    def __init__(self, input_size):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(X_train.shape[1], 995)
+        self.fc1 = nn.Linear(input_size, 512)  # Capa oculta 1
         self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(995, 512)
+        self.fc2 = nn.Linear(512, 256)  # Capa oculta 2
         self.relu2 = nn.ReLU()
-        self.fc3 = nn.Linear(512, 1)
+        self.fc3 = nn.Linear(256, 1)  # Capa de salida
 
     def forward(self, x):
         x = self.fc1(x)
@@ -64,7 +65,8 @@ class NeuralNet(nn.Module):
 
 
 # Crear el modelo
-model = NeuralNet()
+input_size = X_train.shape[1]  # Tamaño de entrada según los datos X_train
+model = NeuralNet(input_size)
 
 # Definir la función de pérdida y el optimizador
 criterion = nn.MSELoss()
