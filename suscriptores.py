@@ -1,11 +1,11 @@
-from sklearn.preprocessing import StandardScaler
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
-import tensorflow as tf
-from tensorflow import _keras
-from tensorflow.keras import layers
+from sklearn.preprocessing import StandardScaler
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 
 df = pd.read_csv(
@@ -15,9 +15,13 @@ df = pd.read_csv(
 X = df[['video views', 'uploads', 'country_rank']]  # Características
 y = df['subscribers']  # Variable objetivo
 
+
 # Dividir los datos en conjuntos de entrenamiento y prueba (por ejemplo, 80% entrenamiento, 20% prueba)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42)
+
+y_train = y_train.to_numpy()
+y_test = y_test.to_numpy()
 
 # Crear un objeto de regresión Ridge
 modelo_regresion_ridge = Ridge(alpha=1.0)
@@ -27,30 +31,65 @@ modelo_regresion_ridge.fit(X_train, y_train)
 
 # Red neuronales
 
-# Normalizar las características (opcional, pero a menudo es útil en redes neuronales)
-
+# Normalizar las características
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# Crear el modelo de redes neuronales
-model = keras.Sequential([
-    layers.Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
-    layers.Dense(32, activation='relu'),
-    layers.Dense(1)  # Capa de salida para regresión
-])
+# Convertir datos a tensores de PyTorch
+X_train = torch.from_numpy(X_train).to(dtype=torch.float32)
+y_train = torch.from_numpy(y_train).to(dtype=torch.float32)
+X_test = torch.from_numpy(X_test).to(dtype=torch.float32)
+y_test = torch.from_numpy(y_test).to(dtype=torch.float32)
 
-# Compilar el modelo
-model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
+# Definir la arquitectura de la red neuronal
+
+
+class NeuralNet(nn.Module):
+    def __init__(self):
+        super(NeuralNet, self).__init__()
+        self.fc1 = nn.Linear(X_train.shape[1], 64)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(64, 32)
+        self.relu2 = nn.ReLU()
+        self.fc3 = nn.Linear(32, 1)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu1(x)
+        x = self.fc2(x)
+        x = self.relu2(x)
+        x = self.fc3(x)
+        return x
+
+
+# Crear el modelo
+model = NeuralNet()
+
+# Definir la función de pérdida y el optimizador
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Entrenar el modelo
-history = model.fit(X_train, y_train, epochs=100,
-                    batch_size=32, validation_split=0.2, verbose=2)
+num_epochs = 100
+batch_size = 32
+for epoch in range(num_epochs):
+    for i in range(0, len(X_train), batch_size):
+        inputs = X_train[i:i+batch_size]
+        targets = y_train[i:i+batch_size]
+
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
+        loss.backward()
+        optimizer.step()
 
 # Evaluar el modelo en el conjunto de prueba
-loss, mae = model.evaluate(X_test, y_test, verbose=0)
-print(f'Error cuadrático medio (MSE): {loss}')
-print(f'Error absoluto medio (MAE): {mae}')
+model.eval()
+with torch.no_grad():
+    y_pred = model(X_test)
+    mse = criterion(y_pred, y_test)
+    mae = torch.abs(y_pred - y_test).mean()
 
-# Realizar predicciones
-y_pred = model.predict(X_test)
+print(f'Error cuadrático medio (MSE): {mse.item()}')
+print(f'Error absoluto medio (MAE): {mae.item()}')
