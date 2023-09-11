@@ -4,12 +4,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 import tensorflow as tf
-from tensorflow import keras, layers
+from tensorflow import _keras
+from tensorflow.keras import layers
 
 
-data_set_youtubers = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjiJn06PS3re6UayHZOHqgDxqegCFAw5ouXeTbFP8sUPRyzC4bWbQPPRpO72NCvg/pubhtml"
-
-df = pd.read_excel(data_set_youtubers)
+df = pd.read_csv(
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSOioDkriLY3qKuLF6Pl2lsPyv-TZNpuMLDGRh6PaGK30sjFR1k3lDI8plyMxpoaeDwAcb31UAouP1E/pub?output=csv")
 
 # características (variables independientes) y variable objetivo (variable dependiente)
 X = df[['video views', 'uploads', 'country_rank']]  # Características
