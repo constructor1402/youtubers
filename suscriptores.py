@@ -3,6 +3,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -49,11 +51,11 @@ y_test = torch.from_numpy(y_test.values).view(-1, 1).to(dtype=torch.float32)
 class NeuralNet(nn.Module):
     def __init__(self, input_size):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_size, 512)  # Capa oculta 1
+        self.fc1 = nn.Linear(input_size, 850)  # Capa oculta 1
         self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(512, 256)  # Capa oculta 2
+        self.fc2 = nn.Linear(850, 450)  # Capa oculta 2
         self.relu2 = nn.ReLU()
-        self.fc3 = nn.Linear(256, 1)  # Capa de salida
+        self.fc3 = nn.Linear(450, 1)  # Capa de salida
 
     def forward(self, x):
         x = self.fc1(x)
@@ -61,6 +63,7 @@ class NeuralNet(nn.Module):
         x = self.fc2(x)
         x = self.relu2(x)
         x = self.fc3(x)
+
         return x
 
 
@@ -93,5 +96,50 @@ with torch.no_grad():
     mse = criterion(y_pred, y_test)
     mae = torch.abs(y_pred - y_test).mean()
 
+print("Modelo de Red neuronales: ")
 print(f'Error cuadrático medio (MSE): {mse.item()}')
 print(f'Error absoluto medio (MAE): {mae.item()}')
+
+
+# modelo de regresion de logistica
+tamaño_entrada = X_train.shape[1]
+model = NeuralNet(tamaño_entrada)
+
+perdida = nn.MSELoss()
+resetear = optim.Adam(model.parameters(), lr=0.001)
+
+
+numero = 100
+tamaño = 32
+for j in range(numero):
+    for i in range(0, len(X_train), tamaño):
+        inputs = X_train[i:i+tamaño]
+        targets = y_train[i:i+tamaño]
+
+        resetear.zero_grad()
+        outputs = model(inputs)
+        loss = perdida(outputs, targets)
+        loss.backward()
+        resetear.step()
+
+# Evaluar el modelo en el conjunto de prueba
+model.eval()
+with torch.no_grad():
+    y_pred = model(X_test)
+    mse = perdida(y_pred, y_test)
+    mae = torch.abs(y_pred - y_test).mean()
+
+
+model = LogisticRegression()
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+valor = accuracy_score(y_test, y_pred)
+informe = classification_report(y_test, y_pred)
+
+
+# Regresion logistica
+print(f'Precisión (valor): {valor}')
+print('Informe de clasificación: ')
+print(informe)
