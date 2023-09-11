@@ -20,8 +20,8 @@ y = df['subscribers']  # Variable objetivo
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42)
 
-y_train = y_train.to_numpy()
-y_test = y_test.to_numpy()
+y_train = y_train.to_numpy().reshape(-1, 1)
+y_test = y_test.to_numpy().reshape(-1, 1)
 
 # Crear un objeto de regresión Ridge
 modelo_regresion_ridge = Ridge(alpha=1.0)
@@ -48,11 +48,11 @@ y_test = torch.from_numpy(y_test).to(dtype=torch.float32)
 class NeuralNet(nn.Module):
     def __init__(self):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(X_train.shape[1], 64)
+        self.fc1 = nn.Linear(X_train.shape[1], 995)
         self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(64, 32)
+        self.fc2 = nn.Linear(995, 512)
         self.relu2 = nn.ReLU()
-        self.fc3 = nn.Linear(32, 1)
+        self.fc3 = nn.Linear(512, 1)
 
     def forward(self, x):
         x = self.fc1(x)
