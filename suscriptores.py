@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 
 
 df = pd.read_csv(
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSOioDkriLY3qKuLF6Pl2lsPyv-TZNpuMLDGRh6PaGK30sjFR1k3lDI8plyMxpoaeDwAcb31UAouP1E/pub?output=csv")
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYsvkc4bQAxWhXlJLlXTL_N2f61FkaWFXD0MdvxdmMJbCL1IDh7Yc7WhbH8bwFcz2s0Np7pnJDqm-_/pub?output=csv")
 
 # características (variables independientes) y variable objetivo (variable dependiente)
 X = df[['video views', 'uploads', 'country_rank']]  # Características
